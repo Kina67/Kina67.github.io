@@ -96,46 +96,132 @@
     const iterations = 100000;
     const keyLength = 256;
 
+    // Funzione per convertire una stringa Base64 in ArrayBuffer
+    function base64ToArrayBuffer(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    // Funzione per convertire un ArrayBuffer in stringa Base64
+    function arrayBufferToBase64(buffer) {
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
+    // Funzione per criptare il testo
+    async function encryptText(plaintext, password) {
+      // Genera salt e iv casuali
+      const salt = crypto.getRandomValues(new Uint8Array(saltLength));
+      const iv = crypto.getRandomValues(new Uint8Array(ivLength));
+      // Importa la password come chiave
+      const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+      );
+      // Deriva la chiave per AES-GCM
+      const key = await crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: salt, iterations: iterations, hash: "SHA-256" },
+        keyMaterial,
+        { name: "AES-GCM", length: keyLength },
+        false,
+        ["encrypt"]
+      );
+      // Cripta il testo
+      const encodedText = new TextEncoder().encode(plaintext);
+      const encrypted = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        encodedText
+      );
+      // Combina salt, iv e dati criptati in un unico ArrayBuffer
+      const combined = new Uint8Array(salt.byteLength + iv.byteLength + encrypted.byteLength);
+      combined.set(salt, 0);
+      combined.set(iv, salt.byteLength);
+      combined.set(new Uint8Array(encrypted), salt.byteLength + iv.byteLength);
+      // Restituisce il risultato in Base64 con prefisso
+      return ENCRYPTED_PREFIX + arrayBufferToBase64(combined.buffer);
+    }
+
+    // Funzione per decriptare il testo
+    async function decryptText(ciphertextBase64, password) {
+      if (!ciphertextBase64.startsWith(ENCRYPTED_PREFIX)) {
+        return "Il testo non sembra essere criptato.";
+      }
+      ciphertextBase64 = ciphertextBase64.slice(ENCRYPTED_PREFIX.length);
+      const combinedBuffer = base64ToArrayBuffer(ciphertextBase64);
+      const salt = new Uint8Array(combinedBuffer.slice(0, saltLength));
+      const iv = new Uint8Array(combinedBuffer.slice(saltLength, saltLength + ivLength));
+      const data = new Uint8Array(combinedBuffer.slice(saltLength + ivLength));
+      const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+      );
+      const key = await crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: salt, iterations: iterations, hash: "SHA-256" },
+        keyMaterial,
+        { name: "AES-GCM", length: keyLength },
+        false,
+        ["decrypt"]
+      );
+      try {
+        const decrypted = await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: iv },
+          key,
+          data
+        );
+        return new TextDecoder().decode(decrypted);
+      } catch (e) {
+        return "Errore nella decriptazione: password errata o dati corrotti.";
+      }
+    }
+
+    // Event listener per il pulsante Cripta
     document.getElementById('encryptBtn').addEventListener('click', async () => {
       const textArea = document.getElementById('textInput');
       const password = document.getElementById('password').value;
-      if (!textArea.value || !password) {
-        alert("Inserisci sia il testo che la password.");
-        return;
-      }
-      if (textArea.value.startsWith(ENCRYPTED_PREFIX)) {
-        alert("Il testo è già criptato. Non è possibile criptarlo ulteriormente.");
+      if (!password) {
+        alert("Inserisci una password.");
         return;
       }
       textArea.value = await encryptText(textArea.value, password);
     });
 
+    // Event listener per il pulsante Decripta
     document.getElementById('decryptBtn').addEventListener('click', async () => {
       const textArea = document.getElementById('textInput');
       const password = document.getElementById('password').value;
-      if (!textArea.value || !password) {
-        alert("Inserisci sia il testo che la password.");
-        return;
-      }
-      if (!textArea.value.startsWith(ENCRYPTED_PREFIX)) {
-        alert("Il testo non sembra essere criptato.");
+      if (!password) {
+        alert("Inserisci una password.");
         return;
       }
       textArea.value = await decryptText(textArea.value, password);
     });
 
+    // Event listener per il pulsante Copia
     document.getElementById('copyBtn').addEventListener('click', async () => {
-      const textArea = document.getElementById('textInput');
-      await navigator.clipboard.writeText(textArea.value);
-      alert("Testo copiato!");
+      await navigator.clipboard.writeText(document.getElementById('textInput').value);
     });
 
+    // Event listener per il pulsante Incolla
     document.getElementById('pasteBtn').addEventListener('click', async () => {
-      const textArea = document.getElementById('textInput');
-      const clipboardText = await navigator.clipboard.readText();
-      textArea.value = clipboardText;
+      document.getElementById('textInput').value = await navigator.clipboard.readText();
     });
 
+    // Event listener per il pulsante Cancella
     document.getElementById('clearBtn').addEventListener('click', () => {
       document.getElementById('textInput').value = "";
       document.getElementById('password').value = "";
