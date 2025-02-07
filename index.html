@@ -222,12 +222,17 @@
       }
     }
 
-    // Event listener per il pulsante Cripta
+    // Event listener per il pulsante Cripta con controllo sul testo già criptato
     document.getElementById('encryptBtn').addEventListener('click', async () => {
       const textArea = document.getElementById('textInput');
       const password = document.getElementById('password').value;
       if (!password) {
         alert("Inserisci una password.");
+        return;
+      }
+      // Controllo: se il testo è già criptato, non lo ri-criptare
+      if (textArea.value.trim().startsWith(ENCRYPTED_PREFIX)) {
+        alert("Il testo risulta già criptato.");
         return;
       }
       textArea.value = await encryptText(textArea.value, password);
