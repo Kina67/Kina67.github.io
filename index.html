@@ -2,6 +2,8 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
+  <!-- Meta tag per rendere la pagina responsive sui dispositivi mobili -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Criptazione/Decriptazione</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,6 +32,7 @@
       padding: 20px;
       width: 100%;
       max-width: 600px;
+      margin: auto;
     }
     textarea {
       width: 100%;
@@ -80,6 +83,20 @@
     }
     .toggle-container label {
       margin-left: 5px;
+    }
+    /* Media query per dispositivi mobili: eventuali aggiustamenti di padding e font-size */
+    @media (max-width: 480px) {
+      body {
+        font-size: 16px;
+        padding: 10px;
+      }
+      .container {
+        padding: 15px;
+      }
+      button {
+        padding: 10px;
+        font-size: 16px;
+      }
     }
   </style>
 </head>
