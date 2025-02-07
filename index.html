@@ -72,16 +72,16 @@
     }
     .button-group {
       display: flex;
-      flex-wrap: wrap;
       gap: 10px;
       justify-content: center;
+      margin-bottom: 10px;
     }
     button {
       background-color: #ff4757;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 10px;
-      font-size: 1rem;
+      font-size: 0.9rem;
       cursor: pointer;
       color: #fff;
       transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
@@ -122,11 +122,11 @@
         }
         index = specialChars.indexOf(char);
         if (index !== -1) {
-          // Se il testo non è stato criptato, criptalo (aggiungi offset 3)
-          // Altrimenti, decriptalo (sottrai offset 3)
           if (!isEncrypted) {
+            // Cripta: aggiunge offset 3
             return specialChars[(index + 3) % specialChars.length];
           } else {
+            // Decripta: sottrae offset 3
             return specialChars[(index - 3 + specialChars.length) % specialChars.length];
           }
         }
@@ -145,7 +145,6 @@
     // Funzione per copiare il contenuto della textarea negli appunti
     function copyText() {
       const textArea = document.getElementById("textArea");
-      // Prova prima con Clipboard API
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(textArea.value).then(() => {
           alert("Testo copiato negli appunti!");
@@ -153,7 +152,6 @@
           alert("Errore durante la copia: " + err);
         });
       } else {
-        // Fallback per browser o contesti non sicuri: usa document.execCommand
         textArea.select();
         try {
           var successful = document.execCommand('copy');
@@ -169,6 +167,23 @@
       }
     }
     
+    // Funzione per incollare il testo dagli appunti nella textarea
+    function pasteText() {
+      const textArea = document.getElementById("textArea");
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.readText().then(text => {
+          textArea.value = text;
+        }).catch(err => {
+          alert("Errore durante l'incolla: " + err);
+        });
+      } else {
+        let text = prompt("Incolla il testo qui:");
+        if (text !== null) {
+          textArea.value = text;
+        }
+      }
+    }
+    
     // Reset dello stato se l'utente modifica il contenuto della textarea
     function resetState() {
       isEncrypted = false;
@@ -178,13 +193,19 @@
 <body>
   <div class="container">
     <h2>Criptatore/Decriptatore Protetto</h2>
-    <!-- Il placeholder non mostra la password -->
     <input type="password" id="passwordField" placeholder="Inserisci la password" autocomplete="off">
     <textarea id="textArea" placeholder="Inserisci o incolla il testo qui..." oninput="resetState()"></textarea>
+    
+    <!-- Pulsante Cripta/Decripta centrato -->
     <div class="button-group">
       <button onclick="toggleCrypt()">Cripta/Decripta</button>
+    </div>
+    
+    <!-- Pulsanti Cancella, Copia, Incolla in fila -->
+    <div class="button-group">
       <button onclick="clearText()">Cancella</button>
       <button onclick="copyText()">Copia</button>
+      <button onclick="pasteText()">Incolla</button>
     </div>
   </div>
 </body>
