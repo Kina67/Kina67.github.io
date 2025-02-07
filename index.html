@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <!-- Meta tag per rendere la pagina responsive sui dispositivi mobili -->
+  <!-- Meta tag per dispositivi mobili -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Criptazione/Decriptazione</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,6 +44,8 @@
       color: #e0e0e0;
       resize: vertical;
       font-size: 14px;
+      /* Altezza iniziale (equivalente a rows="6") */
+      height: 150px;
     }
     input[type="password"],
     input[type="text"] {
@@ -84,7 +86,7 @@
     .toggle-container label {
       margin-left: 5px;
     }
-    /* Media query per dispositivi mobili: eventuali aggiustamenti di padding e font-size */
+    /* Regole specifiche per dispositivi mobili */
     @media (max-width: 480px) {
       body {
         font-size: 16px;
@@ -96,6 +98,12 @@
       button {
         padding: 10px;
         font-size: 16px;
+      }
+      /* Il textarea parte con un'altezza minima e può espandersi fino al doppio */
+      textarea {
+        min-height: 150px;
+        max-height: 300px;
+        overflow-y: auto;
       }
     }
   </style>
@@ -257,6 +265,22 @@
       const passwordField = document.getElementById('password');
       passwordField.type = this.checked ? 'text' : 'password';
     });
+
+    // Funzione per l'auto-resize del textarea su smartphone
+    function autoResizeTextarea() {
+      const textarea = document.getElementById("textInput");
+      // Resetta l'altezza per ricalcolare lo scrollHeight
+      textarea.style.height = "auto";
+      const newHeight = textarea.scrollHeight;
+      // Ottieni il valore massimo definito in CSS (max-height)
+      const maxHeight = parseInt(getComputedStyle(textarea).getPropertyValue("max-height"));
+      textarea.style.height = (newHeight < maxHeight ? newHeight : maxHeight) + "px";
+    }
+
+    // Aggiunge l'auto-resize solo se la larghezza dello schermo è adatta a smartphone
+    if (window.innerWidth <= 480) {
+      document.getElementById("textInput").addEventListener("input", autoResizeTextarea);
+    }
   </script>
 </body>
 </html>
