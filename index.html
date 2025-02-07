@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Criptatore/Decriptatore Protetto da Password</title>
+  <style>
+    /* Reset di base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #27293d);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: #f0f0f0;
+    }
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+      color: #ffcc70;
+    }
+    input[type="password"] {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      outline: none;
+      autocomplete: off;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      background-color: #2c2c3a;
+      color: #f0f0f0;
+      border: none;
+      padding: 15px;
+      font-size: 1rem;
+      border-radius: 5px;
+      resize: vertical;
+      margin-bottom: 20px;
+      outline: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    textarea:focus {
+      transform: scale(1.02);
+      box-shadow: 0 0 10px rgba(255,203,112,0.7);
+    }
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    button {
+      background-color: #ff4757;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      color: #fff;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      background-color: #ff6b81;
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(255,107,129,0.7);
+    }
+  </style>
+  <script>
+    // Definizione degli insiemi di caratteri
+    const key = "zyxwvutsrqponmlkjihgfedcba";
+    const alphabet = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    const specialChars = "!@#$%^&*()_-+=<>?/{}[]|.,:;";
+    
+    // Variabile per tracciare lo stato: false = testo in chiaro, true = testo criptato
+    let isEncrypted = false;
+    
+    // Funzione toggle che controlla la password e poi applica la trasformazione
+    function toggleCrypt() {
+      const password = document.getElementById("passwordField").value;
+      if (password !== "Maya") {
+        alert("Password errata!");
+        return;
+      }
+      const textArea = document.getElementById("textArea");
+      let text = textArea.value;
+      let transformed = text.split("").map(char => {
+        let index = alphabet.indexOf(char.toLowerCase());
+        if (index !== -1) {
+          return (char === char.toUpperCase()) ? key[index].toUpperCase() : key[index];
+        }
+        index = numbers.indexOf(char);
+        if (index !== -1) {
+          return numbers[(index + 5) % 10];
+        }
+        index = specialChars.indexOf(char);
+        if (index !== -1) {
+          // Se il testo non è stato criptato, criptalo (aggiungi offset 3)
+          // Altrimenti, decriptalo (sottrai offset 3)
+          if (!isEncrypted) {
+            return specialChars[(index + 3) % specialChars.length];
+          } else {
+            return specialChars[(index - 3 + specialChars.length) % specialChars.length];
+          }
+        }
+        return char;
+      }).join("");
+      textArea.value = transformed;
+      isEncrypted = !isEncrypted;
+    }
+    
+    // Funzione per cancellare il contenuto della textarea
+    function clearText() {
+      document.getElementById("textArea").value = "";
+      isEncrypted = false;
+    }
+    
+    // Funzione per copiare il contenuto della textarea negli appunti
+    function copyText() {
+      const textArea = document.getElementById("textArea");
+      // Prova prima con Clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(textArea.value).then(() => {
+          alert("Testo copiato negli appunti!");
+        }).catch(err => {
+          alert("Errore durante la copia: " + err);
+        });
+      } else {
+        // Fallback per browser o contesti non sicuri: usa document.execCommand
+        textArea.select();
+        try {
+          var successful = document.execCommand('copy');
+          if(successful){
+            alert("Testo copiato negli appunti!");
+          } else {
+            alert("Impossibile copiare il testo.");
+          }
+        } catch (err) {
+          alert("Errore durante la copia: " + err);
+        }
+        window.getSelection().removeAllRanges();
+      }
+    }
+    
+    // Reset dello stato se l'utente modifica il contenuto della textarea
+    function resetState() {
+      isEncrypted = false;
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h2>Criptatore/Decriptatore Protetto</h2>
+    <!-- Il placeholder non mostra la password -->
+    <input type="password" id="passwordField" placeholder="Inserisci la password" autocomplete="off">
+    <textarea id="textArea" placeholder="Inserisci o incolla il testo qui..." oninput="resetState()"></textarea>
+    <div class="button-group">
+      <button onclick="toggleCrypt()">Cripta/Decripta</button>
+      <button onclick="clearText()">Cancella</button>
+      <button onclick="copyText()">Copia</button>
+    </div>
+  </div>
+</body>
+</html>
