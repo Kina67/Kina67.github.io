@@ -188,9 +188,7 @@
 
     // Funzione per decriptare il testo
     async function decryptText(ciphertextBase64, password) {
-      if (!ciphertextBase64.startsWith(ENCRYPTED_PREFIX)) {
-        return "Il testo non sembra essere criptato.";
-      }
+      // La funzione mantiene il comportamento di ritorno del messaggio in caso di errore
       ciphertextBase64 = ciphertextBase64.slice(ENCRYPTED_PREFIX.length);
       const combinedBuffer = base64ToArrayBuffer(ciphertextBase64);
       const salt = new Uint8Array(combinedBuffer.slice(0, saltLength));
@@ -246,7 +244,18 @@
         alert("Inserisci una password.");
         return;
       }
-      textArea.value = await decryptText(textArea.value, password);
+      // Se il testo non inizia con il prefisso, visualizza il messaggio in un alert senza modificare il contenuto
+      if (!textArea.value.trim().startsWith(ENCRYPTED_PREFIX)) {
+        alert("Il testo non sembra essere criptato.");
+        return;
+      }
+      const result = await decryptText(textArea.value, password);
+      // Se la decriptazione fallisce, mostra l'errore in un alert
+      if (result.startsWith("Errore nella decriptazione")) {
+        alert(result);
+      } else {
+        textArea.value = result;
+      }
     });
 
     // Event listener per il pulsante Copia
