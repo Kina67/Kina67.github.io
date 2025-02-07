@@ -42,7 +42,8 @@
       resize: vertical;
       font-size: 14px;
     }
-    input[type="password"] {
+    input[type="password"],
+    input[type="text"] {
       width: 100%;
       padding: 8px;
       margin-bottom: 10px;
@@ -72,12 +73,25 @@
       background-color: #72b7ad;
       transform: scale(1.02);
     }
+    .toggle-container {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+    .toggle-container label {
+      margin-left: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <textarea id="textInput" rows="6" placeholder="Inserisci qui il testo..."></textarea>
     <input type="password" id="password" placeholder="Password">
+    <!-- Toggle per visualizzare la password -->
+    <div class="toggle-container">
+      <input type="checkbox" id="togglePassword">
+      <label for="togglePassword">Mostra password</label>
+    </div>
     <div class="buttons">
       <button id="encryptBtn">Cripta</button>
       <button id="decryptBtn">Decripta</button>
@@ -118,10 +132,8 @@
 
     // Funzione per criptare il testo
     async function encryptText(plaintext, password) {
-      // Genera salt e iv casuali
       const salt = crypto.getRandomValues(new Uint8Array(saltLength));
       const iv = crypto.getRandomValues(new Uint8Array(ivLength));
-      // Importa la password come chiave
       const keyMaterial = await crypto.subtle.importKey(
         "raw",
         new TextEncoder().encode(password),
@@ -129,7 +141,6 @@
         false,
         ["deriveKey"]
       );
-      // Deriva la chiave per AES-GCM
       const key = await crypto.subtle.deriveKey(
         { name: "PBKDF2", salt: salt, iterations: iterations, hash: "SHA-256" },
         keyMaterial,
@@ -137,19 +148,16 @@
         false,
         ["encrypt"]
       );
-      // Cripta il testo
       const encodedText = new TextEncoder().encode(plaintext);
       const encrypted = await crypto.subtle.encrypt(
         { name: "AES-GCM", iv: iv },
         key,
         encodedText
       );
-      // Combina salt, iv e dati criptati in un unico ArrayBuffer
       const combined = new Uint8Array(salt.byteLength + iv.byteLength + encrypted.byteLength);
       combined.set(salt, 0);
       combined.set(iv, salt.byteLength);
       combined.set(new Uint8Array(encrypted), salt.byteLength + iv.byteLength);
-      // Restituisce il risultato in Base64 con prefisso
       return ENCRYPTED_PREFIX + arrayBufferToBase64(combined.buffer);
     }
 
@@ -225,6 +233,12 @@
     document.getElementById('clearBtn').addEventListener('click', () => {
       document.getElementById('textInput').value = "";
       document.getElementById('password').value = "";
+    });
+
+    // Event listener per il toggle della visibilità della password
+    document.getElementById('togglePassword').addEventListener('change', function() {
+      const passwordField = document.getElementById('password');
+      passwordField.type = this.checked ? 'text' : 'password';
     });
   </script>
 </body>
