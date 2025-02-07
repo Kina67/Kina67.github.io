@@ -2,211 +2,144 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Criptatore/Decriptatore Protetto da Password</title>
+  <title>Criptazione/Decriptazione</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* Reset di base */
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #1e1e2f, #27293d);
-      background-size: 400% 400%;
-      animation: gradientAnimation 15s ease infinite;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       min-height: 100vh;
       padding: 20px;
-      color: #f0f0f0;
-    }
-    @keyframes gradientAnimation {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      font-size: 14px;
     }
     .container {
-      width: 90%;
-      max-width: 600px;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 30px;
+      background-color: #1e1e1e;
       border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-      text-align: center;
-    }
-    h2 {
-      margin-bottom: 20px;
-      font-size: 1.8rem;
-      color: #ffcc70;
-    }
-    input[type="password"] {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0 20px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-      outline: none;
-      autocomplete: off;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      width: 100%;
+      max-width: 600px;
     }
     textarea {
       width: 100%;
-      height: 150px;
-      background-color: #2c2c3a;
-      color: #f0f0f0;
-      border: none;
-      padding: 15px;
-      font-size: 1rem;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #444;
       border-radius: 5px;
+      background-color: #2c2c2c;
+      color: #e0e0e0;
       resize: vertical;
-      margin-bottom: 20px;
-      outline: none;
-      transition: transform 0.3s, box-shadow 0.3s;
+      font-size: 14px;
     }
-    textarea:focus {
-      transform: scale(1.02);
-      box-shadow: 0 0 10px rgba(255,203,112,0.7);
+    input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #444;
+      border-radius: 5px;
+      background-color: #2c2c2c;
+      color: #e0e0e0;
+      font-size: 14px;
     }
-    .button-group {
+    .buttons {
       display: flex;
       gap: 10px;
-      justify-content: center;
-      margin-bottom: 10px;
+      flex-wrap: wrap;
     }
     button {
-      background-color: #ff4757;
+      background-color: #80cbc4;
+      color: #121212;
       border: none;
-      padding: 8px 16px;
-      border-radius: 10px;
-      font-size: 0.9rem;
+      border-radius: 5px;
+      padding: 8px 12px;
       cursor: pointer;
-      color: #fff;
-      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      font-size: 14px;
+      flex: 1;
     }
     button:hover {
-      background-color: #ff6b81;
-      transform: scale(1.05);
-      box-shadow: 0 0 10px rgba(255,107,129,0.7);
+      background-color: #72b7ad;
+      transform: scale(1.02);
     }
   </style>
-  <script>
-    // Definizione degli insiemi di caratteri
-    const key = "zyxwvutsrqponmlkjihgfedcba";
-    const alphabet = "abcdefghijklmnopqrstuvwxyz";
-    const numbers = "0123456789";
-    const specialChars = "!@#$%^&*()_-+=<>?/{}[]|.,:;";
-    
-    // Variabile per tracciare lo stato: false = testo in chiaro, true = testo criptato
-    let isEncrypted = false;
-    
-    // Funzione toggle che controlla la password e poi applica la trasformazione
-    function toggleCrypt() {
-      const password = document.getElementById("passwordField").value;
-      if (password !== "Maya") {
-        alert("Password errata!");
-        return;
-      }
-      const textArea = document.getElementById("textArea");
-      let text = textArea.value;
-      let transformed = text.split("").map(char => {
-        let index = alphabet.indexOf(char.toLowerCase());
-        if (index !== -1) {
-          return (char === char.toUpperCase()) ? key[index].toUpperCase() : key[index];
-        }
-        index = numbers.indexOf(char);
-        if (index !== -1) {
-          return numbers[(index + 5) % 10];
-        }
-        index = specialChars.indexOf(char);
-        if (index !== -1) {
-          if (!isEncrypted) {
-            // Cripta: aggiunge offset 3
-            return specialChars[(index + 3) % specialChars.length];
-          } else {
-            // Decripta: sottrae offset 3
-            return specialChars[(index - 3 + specialChars.length) % specialChars.length];
-          }
-        }
-        return char;
-      }).join("");
-      textArea.value = transformed;
-      isEncrypted = !isEncrypted;
-    }
-    
-    // Funzione per cancellare il contenuto della textarea
-    function clearText() {
-      document.getElementById("textArea").value = "";
-      isEncrypted = false;
-    }
-    
-    // Funzione per copiare il contenuto della textarea negli appunti
-    function copyText() {
-      const textArea = document.getElementById("textArea");
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(textArea.value).then(() => {
-          alert("Testo copiato negli appunti!");
-        }).catch(err => {
-          alert("Errore durante la copia: " + err);
-        });
-      } else {
-        textArea.select();
-        try {
-          var successful = document.execCommand('copy');
-          if(successful){
-            alert("Testo copiato negli appunti!");
-          } else {
-            alert("Impossibile copiare il testo.");
-          }
-        } catch (err) {
-          alert("Errore durante la copia: " + err);
-        }
-        window.getSelection().removeAllRanges();
-      }
-    }
-    
-    // Funzione per incollare il testo dagli appunti nella textarea
-    function pasteText() {
-      const textArea = document.getElementById("textArea");
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.readText().then(text => {
-          textArea.value = text;
-        }).catch(err => {
-          alert("Errore durante l'incolla: " + err);
-        });
-      } else {
-        let text = prompt("Incolla il testo qui:");
-        if (text !== null) {
-          textArea.value = text;
-        }
-      }
-    }
-    
-    // Reset dello stato se l'utente modifica il contenuto della textarea
-    function resetState() {
-      isEncrypted = false;
-    }
-  </script>
 </head>
 <body>
   <div class="container">
-    <h2>Criptatore/Decriptatore Protetto</h2>
-    <input type="password" id="passwordField" placeholder="Inserisci la password" autocomplete="off">
-    <textarea id="textArea" placeholder="Inserisci o incolla il testo qui..." oninput="resetState()"></textarea>
-    
-    <!-- Pulsante Cripta/Decripta centrato -->
-    <div class="button-group">
-      <button onclick="toggleCrypt()">Cripta/Decripta</button>
+    <textarea id="textInput" rows="6" placeholder="Inserisci qui il testo..."></textarea>
+    <input type="password" id="password" placeholder="Password">
+    <div class="buttons">
+      <button id="encryptBtn">Cripta</button>
+      <button id="decryptBtn">Decripta</button>
     </div>
-    
-    <!-- Pulsanti Cancella, Copia, Incolla in fila -->
-    <div class="button-group">
-      <button onclick="clearText()">Cancella</button>
-      <button onclick="copyText()">Copia</button>
-      <button onclick="pasteText()">Incolla</button>
+    <div class="buttons" style="margin-top: 10px;">
+      <button id="copyBtn">Copia</button>
+      <button id="pasteBtn">Incolla</button>
+      <button id="clearBtn">Cancella</button>
     </div>
   </div>
+
+  <script>
+    const ENCRYPTED_PREFIX = "ENC:";
+    const saltLength = 16;
+    const ivLength = 12;
+    const iterations = 100000;
+    const keyLength = 256;
+
+    document.getElementById('encryptBtn').addEventListener('click', async () => {
+      const textArea = document.getElementById('textInput');
+      const password = document.getElementById('password').value;
+      if (!textArea.value || !password) {
+        alert("Inserisci sia il testo che la password.");
+        return;
+      }
+      if (textArea.value.startsWith(ENCRYPTED_PREFIX)) {
+        alert("Il testo è già criptato. Non è possibile criptarlo ulteriormente.");
+        return;
+      }
+      textArea.value = await encryptText(textArea.value, password);
+    });
+
+    document.getElementById('decryptBtn').addEventListener('click', async () => {
+      const textArea = document.getElementById('textInput');
+      const password = document.getElementById('password').value;
+      if (!textArea.value || !password) {
+        alert("Inserisci sia il testo che la password.");
+        return;
+      }
+      if (!textArea.value.startsWith(ENCRYPTED_PREFIX)) {
+        alert("Il testo non sembra essere criptato.");
+        return;
+      }
+      textArea.value = await decryptText(textArea.value, password);
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      const textArea = document.getElementById('textInput');
+      await navigator.clipboard.writeText(textArea.value);
+      alert("Testo copiato!");
+    });
+
+    document.getElementById('pasteBtn').addEventListener('click', async () => {
+      const textArea = document.getElementById('textInput');
+      const clipboardText = await navigator.clipboard.readText();
+      textArea.value = clipboardText;
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      document.getElementById('textInput').value = "";
+      document.getElementById('password').value = "";
+    });
+  </script>
 </body>
 </html>
